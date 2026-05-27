@@ -30,12 +30,15 @@ function showCorruptedTokens(cookies) {
     list.style.display = "block";
 }
 
-async function getAllTokenCookies(envFilter) {
+async function getAllTokenCookies(envFilter, domainFilter) {
     return new Promise(resolve => {
         chrome.cookies.getAll({}, cookies => {
             let matches = cookies.filter(c => isTokenCookie(c.name));
             if (envFilter) {
                 matches = matches.filter(c => c.name.toLowerCase().includes(envFilter.toLowerCase()));
+            }
+            if (domainFilter) {
+                matches = matches.filter(c => c.domain === domainFilter || c.domain === `.${domainFilter}`);
             }
             matches = matches.filter(c => c.value && c.value !== "undefined");
             resolve(matches);
@@ -65,19 +68,51 @@ async function setCookie(cookie, value) {
     });
 }
 
-async function corruptCookies(envFilter) {
-    const cookies = await getAllTokenCookies(envFilter);
-    if (cookies.length === 0) {
-        setStatus(envFilter ? `No tokens found for "${envFilter}".` : "No matching tokens found.");
-        return;
-    }
+function showPreview(cookies, onConfirm) {
+    const preview = document.getElementById("preview");
+    const list = document.getElementById("previewList");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
 
-    // Always overwrite saved originals with the current scan (fresh state each time)
+    let selected = [...cookies];
+
+    const renderList = () => {
+        list.innerHTML = "";
+        selected.forEach((c, i) => {
+            const item = document.createElement("div");
+            item.className = "token-item";
+            const truncated = c.value.length > 40 ? c.value.slice(0, 40) + "…" : c.value;
+            item.innerHTML = `<div class="token-name">${c.name}</div><div class="token-value">${truncated}</div><button class="remove-btn" title="Remove">✕</button>`;
+            item.querySelector(".remove-btn").addEventListener("click", () => {
+                selected.splice(i, 1);
+                confirmBtn.disabled = selected.length === 0;
+                renderList();
+            });
+            list.appendChild(item);
+        });
+    };
+
+    renderList();
+    confirmBtn.disabled = false;
+    preview.style.display = "block";
+    setStatus("");
+    showCorruptedTokens([]);
+
+    const cleanup = () => {
+        preview.style.display = "none";
+        confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+        cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+    };
+
+    document.getElementById("confirmBtn").addEventListener("click", () => { const s = selected; cleanup(); onConfirm(s); }, { once: true });
+    document.getElementById("cancelBtn").addEventListener("click", () => { cleanup(); setStatus("Cancelled."); }, { once: true });
+}
+
+async function executeCorrupt(cookies, envFilter) {
     const existing = await chrome.storage.local.get(STORAGE_KEY);
     const originals = existing[STORAGE_KEY] || {};
     cookies.forEach(c => {
         const key = [c.name, c.domain, c.path, c.storeId].join("|");
-        // Only save original if not already corrupted (i.e. not previously saved)
         if (!originals[key]) {
             originals[key] = { cookie: c, value: c.value };
         }
@@ -95,24 +130,33 @@ async function corruptCookies(envFilter) {
     showCorruptedTokens(cookies);
 }
 
-document.getElementById("corruptAllBtn").addEventListener("click", () => corruptCookies(null));
+async function corruptCookies(envFilter, domainFilter) {
+    const cookies = await getAllTokenCookies(envFilter, domainFilter);
+    if (cookies.length === 0) {
+        setStatus(envFilter ? `No tokens found for "${envFilter}".` : "No matching tokens found.");
+        return;
+    }
+    showPreview(cookies, selected => executeCorrupt(selected, envFilter));
+}
 
-function extractEnvFilter(url) {
-    // Prod: events.bizzabo.com → no env filter needed, corrupt all tokens
-    if (/https?:\/\/events\.bizzabo\.com/.test(url)) return { filter: null, recognized: true };
+document.getElementById("corruptAllBtn").addEventListener("click", () => corruptCookies(null, null));
+
+function extractPageContext(url) {
+    // Prod: events.bizzabo.com
+    if (/https?:\/\/events\.bizzabo\.com/.test(url)) return { filter: null, domain: "events.bizzabo.com", recognized: true };
     // Dev: staging-app.bizzabo.com → extract env prefix before the dash
-    const devMatch = url.match(/https?:\/\/([^.]+)-/);
-    if (devMatch) return { filter: devMatch[1], recognized: true };
-    return { filter: null, recognized: false };
+    const devMatch = url.match(/https?:\/\/([^.]+)-([^/]+)/);
+    if (devMatch) return { filter: devMatch[1], domain: devMatch[2], recognized: true };
+    return { filter: null, domain: null, recognized: false };
 }
 
 document.getElementById("corruptPageBtn").addEventListener("click", () => {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
         const url = tabs[0]?.url;
         if (!url) { setStatus("Could not detect current tab."); return; }
-        const { filter, recognized } = extractEnvFilter(url);
+        const { filter, domain, recognized } = extractPageContext(url);
         if (!recognized) { setStatus("Could not extract env from URL."); return; }
-        corruptCookies(filter);
+        corruptCookies(filter, domain);
     });
 });
 

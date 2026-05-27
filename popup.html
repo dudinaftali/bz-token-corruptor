@@ -70,6 +70,65 @@
             color: #777;
             font-family: monospace;
         }
+        #preview {
+            display: none;
+            margin-top: 10px;
+        }
+        #preview .preview-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        #preview .token-item {
+            background: #fff8e1;
+            border-left: 3px solid #e67e22;
+            border-radius: 3px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            word-break: break-all;
+            position: relative;
+            padding-right: 22px;
+        }
+        #preview .token-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        #preview .token-value {
+            color: #777;
+            font-family: monospace;
+        }
+        #preview .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 13px;
+            padding: 0;
+            width: auto;
+            margin: 0;
+            line-height: 1;
+        }
+        #preview .remove-btn:hover { color: #c0392b; }
+        #previewActions {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        #previewActions button {
+            margin-bottom: 0;
+            padding: 8px;
+            font-size: 12px;
+        }
+        #confirmBtn { background-color: #c0392b; color: white; }
+        #confirmBtn:hover { background-color: #96281b; }
+        #cancelBtn { background-color: #888; color: white; }
+        #cancelBtn:hover { background-color: #666; }
     </style>
 </head>
 <body>
@@ -78,6 +137,14 @@
     <button id="corruptPageBtn">Corrupt Current Page Tokens</button>
     <button id="restoreBtn" disabled>Restore Tokens</button>
     <div id="status"></div>
+    <div id="preview">
+        <div class="preview-label">Tokens to be corrupted:</div>
+        <div id="previewList"></div>
+        <div id="previewActions">
+            <button id="confirmBtn">Confirm</button>
+            <button id="cancelBtn">Cancel</button>
+        </div>
+    </div>
     <div id="tokenList"></div>
     <script src="popup.js"></script>
 </body>
