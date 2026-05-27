@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 260px;
+            padding: 16px;
+            margin: 0;
+        }
+        h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #333;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        #corruptAllBtn {
+            background-color: #c0392b;
+            color: white;
+        }
+        #corruptAllBtn:hover { background-color: #96281b; }
+        #corruptPageBtn {
+            background-color: #e67e22;
+            color: white;
+        }
+        #corruptPageBtn:hover { background-color: #ca6f1e; }
+        #restoreBtn {
+            background-color: #27ae60;
+            color: white;
+        }
+        #restoreBtn:hover { background-color: #1e8449; }
+        #restoreBtn:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #status {
+            font-size: 12px;
+            color: #555;
+            margin-top: 8px;
+            min-height: 16px;
+        }
+        #tokenList {
+            margin-top: 10px;
+            display: none;
+        }
+        #tokenList .token-item {
+            background: #f5f5f5;
+            border-left: 3px solid #c0392b;
+            border-radius: 3px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            word-break: break-all;
+        }
+        #tokenList .token-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        #tokenList .token-value {
+            color: #777;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h3>BZ Token Corruptor</h3>
+    <button id="corruptAllBtn">Corrupt All Tokens</button>
+    <button id="corruptPageBtn">Corrupt Current Page Tokens</button>
+    <button id="restoreBtn" disabled>Restore Tokens</button>
+    <div id="status"></div>
+    <div id="tokenList"></div>
+    <script src="popup.js"></script>
+</body>
+</html>

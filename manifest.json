@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "BZ Token Corruptor",
+  "version": "1.0",
+  "description": "Corrupt Bizzabo attendee tokens to reproduce expired token error state.",
+  "permissions": ["cookies", "storage", "tabs"],
+  "host_permissions": [
+    "*://*.bizzabo.com/*",
+    "*://*.ext.dev.bizzabo.com/*"
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "BZ Token Corruptor",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  }
+}
