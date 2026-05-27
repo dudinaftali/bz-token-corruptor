@@ -68,7 +68,13 @@ async function setCookie(cookie, value) {
     });
 }
 
+let previewAbort = null;
+
 function showPreview(cookies, onConfirm) {
+    if (previewAbort) previewAbort.abort();
+    previewAbort = new AbortController();
+    const signal = previewAbort.signal;
+
     const preview = document.getElementById("preview");
     const list = document.getElementById("previewList");
     const confirmBtn = document.getElementById("confirmBtn");
@@ -98,14 +104,10 @@ function showPreview(cookies, onConfirm) {
     setStatus("");
     showCorruptedTokens([]);
 
-    const cleanup = () => {
-        preview.style.display = "none";
-        confirmBtn.replaceWith(confirmBtn.cloneNode(true));
-        cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-    };
+    const hide = () => { preview.style.display = "none"; };
 
-    document.getElementById("confirmBtn").addEventListener("click", () => { const s = selected; cleanup(); onConfirm(s); }, { once: true });
-    document.getElementById("cancelBtn").addEventListener("click", () => { cleanup(); setStatus("Cancelled."); }, { once: true });
+    confirmBtn.addEventListener("click", () => { hide(); onConfirm(selected); }, { once: true, signal });
+    cancelBtn.addEventListener("click", () => { hide(); setStatus("Cancelled."); }, { once: true, signal });
 }
 
 async function executeCorrupt(cookies, envFilter) {
